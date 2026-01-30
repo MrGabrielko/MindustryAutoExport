@@ -1,39 +1,111 @@
-# Mindustry Java Mod Template
-A Java Mindustry mod template that works on Android and PC. The Kotlin version of this mod can be seen [here](https://github.com/Anuken/MindustryKotlinModTemplate).
+# Mindustry Auto Export / Mirror Sync Mod
+Automatically exports and imports your Mindustry save data between devices using a user‑defined sync folder.
+This mod creates a self‑contained autosync system:
+Mindustry exports its full game‑data ZIP into a public folder, and on the next launch it imports that ZIP if it is newer (“newest wins”).
+Perfect for setting up automatic phone ↔ PC save synchronization using tools like FolderSync, OneDrive, Syncthing, Dropbox, etc.
 
-## Building for Desktop Testing
+# ✨ Features
+## ✔ Auto‑export game data
+Exports Mindustry’s official game‑data ZIP at a configurable interval (default 5 minutes) into any folder you choose (Downloads, Documents, etc.).
+Exports use Mindustry’s built‑in exportData() function from the settings menu, ensuring full compatibility with campaign progress, maps, schematics, etc. [github.com]
+## ✔ Auto‑import newest save on launch
+When Mindustry reaches the main menu, the mod checks the chosen ZIP file.
+If it is newer than the last import, the mod imports it using the same routine as Settings → Game Data → Import Data. [github.com]
+## ✔ "Newest Wins" protection
+The mod never overwrites newer data:
 
-1. Install JDK **17**.
-2. Run `gradlew jar` [1].
-3. Your mod jar will be in the `build/libs` directory. **Only use this version for testing on desktop. It will not work with Android.**
-To build an Android-compatible version, you need the Android SDK. You can either let Github Actions handle this, or set it up yourself. See steps below.
+- Export is skipped if the mirror ZIP is newer
+- Import happens only when the ZIP timestamp is newer than the last import
+- Prevents sync loops and data loss
 
-## Building through Github Actions
+## ✔ User‑choosable sync location
+Mindustry’s native file chooser (the same used by the export/import UI) allows picking any writeable public folder.
+Path is stored in Core.settings using Mindustry's settings system. [mindustryg....github.io]
+## ✔ Safe import (menu‑only)
+Imports only in the main menu, avoiding autosave overwrites during gameplay.
+This is consistent with the Mindustry developer note that importing during play will be overwritten by the active autosave. [reddit.com]
 
-This repository is set up with Github Actions CI to automatically build the mod for you every commit. This requires a Github repository, for obvious reasons.
-To get a jar file that works for every platform, do the following:
-1. Make a Github repository with your mod name, and upload the contents of this repo to it. Perform any modifications necessary, then commit and push. 
-2. Check the "Actions" tab on your repository page. Select the most recent commit in the list. If it completed successfully, there should be a download link under the "Artifacts" section. 
-3. Click the download link (should be the name of your repo). This will download a **zipped jar** - **not** the jar file itself [2]! Unzip this file and import the jar contained within in Mindustry. This version should work both on Android and Desktop.
+## 🧩 How it works
 
-## Building Locally
+# Export flow
 
-Building locally takes more time to set up, but shouldn't be a problem if you've done Android development before.
-1. Download the Android SDK, unzip it and set the `ANDROID_HOME` environment variable to its location.
-2. Make sure you have API level 30 installed, as well as any recent version of build tools (e.g. 30.0.1)
-3. Add a build-tools folder to your PATH. For example, if you have `30.0.1` installed, that would be `$ANDROID_HOME/build-tools/30.0.1`.
-4. Run `gradlew deploy`. If you did everything correctlly, this will create a jar file in the `build/libs` directory that can be run on both Android and desktop. 
+1. Every N minutes (default: 5)
+2. Check if the mirror ZIP exists
+3. If the mirror ZIP is newer, skip export (“newest wins”)
+4. Else export using Mindustry’s built‑in exporter
+5. Update internal timestamp
 
-## Adding Dependencies
+# Import flow
 
-Please note that all dependencies on Mindustry, Arc or its submodules **must be declared as compileOnly in Gradle**. Never use `implementation` for core Mindustry or Arc dependencies. 
+On main menu
+1. Check if mirror ZIP exists
+2. If mirror ZIP timestamp > last imported timestamp → import
+3. Import using Mindustry’s official importData()
+4. Mindustry resets game state and restarts (same as manual import)
 
-- `implementation` **places the entire dependency in the jar**, which is, in most mod dependencies, very undesirable. You do not want the entirety of the Mindustry API included with your mod.
-- `compileOnly` means that the dependency is only around at compile time, and not included in the jar.
 
-Only use `implementation` if you want to package another Java library *with your mod*, and that library is not present in Mindustry already.
+# 📦 Installation
 
---- 
+## From Mod Browser (recommended)
+Search for:
+Mindustry Auto Export
+Then press Install.
+## Manual install
 
-*[1]* *On Linux/Mac it's `./gradlew`, but if you're using Linux I assume you know how to run executables properly anyway.*  
-*[2]: Yes, I know this is stupid. It's a Github UI limitation - while the jar itself is uploaded unzipped, there is currently no way to download it as a single file.*
+1. Download the .jar from the GitHub Releases page
+2. Put it in:
+
+- Windows: %AppData%/Mindustry/mods/
+- Linux: ~/.local/share/Mindustry/mods/
+- Android: /storage/emulated/0/Android/data/io.anuke.mindustry/files/mods/
+
+
+Restart Mindustry
+
+
+## ⚙️ First‑time setup
+After installing the mod:
+
+1. Open Settings → Mirror Sync
+2. Tap Choose mirror zip…
+3. Pick a location you want your ZIP saved to (e.g. Documents/MindustrySync/mindustry-data.zip)
+4. Enable:
+
+	- Auto Import
+	- Auto Export
+	- Set interval (default 5 min)
+
+Now you can sync the chosen folder using:
+
+- FolderSync
+- Syncthing
+- OneDrive
+- Dropbox
+- Google Drive (via FolderSync)
+- PC cloud clients
+
+📁 Platform support
+
+✔ Desktop (Windows / Linux / Mac)
+✔ Android (11+ supported via system file picker)
+✔ Cross‑device sync ready
+
+
+📝 Changelog
+v1.0.0
+
+Initial release
+Auto export / auto import
+Newest‑wins sync logic
+SAF file chooser
+Menu‑safe importing
+Customizable export interval
+
+
+❤️ Credits
+Created by MrGabrielko
+Built using the official Mindustry Java Mod Template.
+
+🐞 Issues & Suggestions
+Submit bug reports or feature requests at:
+https://github.com/MrGabrielko/MindustryAutoExport/issues
